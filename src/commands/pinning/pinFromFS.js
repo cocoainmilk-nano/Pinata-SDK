@@ -6,6 +6,7 @@ import basePathConverter from 'base-path-converter';
 import { handleError } from '../../util/errorResponse';
 const fs = require('fs');
 const recursive = require('recursive-fs');
+var https = require('https');
 
 /**
  * PinFromFS
@@ -20,6 +21,8 @@ export default function pinFromFS(pinataApiKey, pinataSecretApiKey, sourcePath, 
 
     return new Promise((resolve, reject) => {
         const endpoint = `${baseUrl}/pinning/pinFileToIPFS`;
+
+        const agent = new https.Agent({ family: 4 });
 
         fs.stat(sourcePath, (err, stats) => {
             if (err) {
@@ -53,7 +56,8 @@ export default function pinFromFS(pinataApiKey, pinataSecretApiKey, sourcePath, 
                             'Content-type': `multipart/form-data; boundary= ${data._boundary}`,
                             'pinata_api_key': pinataApiKey,
                             'pinata_secret_api_key': pinataSecretApiKey
-                        }
+                        },
+                        httpsAgent: agent
                     }).then(function (result) {
                     if (result.status !== 200) {
                         reject(new Error(`unknown server response while pinning File to IPFS: ${result}`));
